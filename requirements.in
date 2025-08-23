@@ -1,0 +1,4 @@
+Flask==2.2.2
+flask-healthz==0.0.3
+requests==2.28.1
+Werkzeug==2.2.2
