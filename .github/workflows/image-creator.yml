@@ -22,3 +22,23 @@ jobs:
         id: increment-git-tag
         run: |
           bash ./build/version_update.sh -v minor
+
+  build_and_push:
+    runs-on: 
+      - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
+
+    needs: get_version
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Set up Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Log in to AWS ECR
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          region: ${{ secrets.AWS_REGION }}
