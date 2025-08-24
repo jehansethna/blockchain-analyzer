@@ -11,6 +11,11 @@ on:
 
 jobs:
   build_and_push:
-    runs-on: image-creator
+    runs-on: 
+      - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - run: echo "Hello World"
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Testing Command
+        run: echo "Hello World"
