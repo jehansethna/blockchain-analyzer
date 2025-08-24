@@ -11,7 +11,6 @@ on:
 
 jobs:
   build_and_push:
-    runs-on:
-      - image-creator-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: image-creator
     steps:
       - run: echo "Hello World"
