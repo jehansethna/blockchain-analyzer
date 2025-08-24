@@ -5,7 +5,7 @@ on:
     paths:
       - src/**
       - .github/**
-      - Dockerfil
+      - Dockerfile
     branches:
       - main # Trigger the workflow on push to the main branch
 
