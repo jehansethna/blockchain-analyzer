@@ -3,7 +3,8 @@ name: Build and Push Docker Images to AWS ECR
 on:
   push:
     paths:
-      - '**/*'
+      - src/**
+      - .github/**
     branches:
       - main # Trigger the workflow on push to the main branch
 
