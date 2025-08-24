@@ -1,0 +1,16 @@
+name: Build and Push Docker Images to AWS ECR
+
+on:
+  push:
+    paths:
+      - '**/*'
+    branches:
+      - main # Trigger the workflow on push to the main branch
+
+
+jobs:
+  build_and_push:
+    runs-on:
+      - image-creator-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - run: echo "Hello World"
