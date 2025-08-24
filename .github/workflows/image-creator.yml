@@ -7,12 +7,18 @@ on:
 
 
 jobs:
-  build_and_push:
+  get_version:
     runs-on: 
       - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
+    
+    outputs:
+      image_tag: ${{ steps.increment-git-tag.outputs.git-tag }}
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      - name: Testing Command
-        run: echo "Hello World"
+      - name: Automatic Tagging of Releases
+        id: increment-git-tag
+        run: |
+          bash ./build/version_update.sh -v minor
