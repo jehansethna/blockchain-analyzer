@@ -28,23 +28,3 @@ variable "availability_zones" {
   description = "List of availability zones"
   type        = list(string)
 }
-
-variable "task_cpu" {
-    description = "CPU for the task"
-    type = string 
-}
-
-variable "task_memory" {
-    description = "Memory for the task"
-    type = string 
-}
-
-variable "container_image" {
-    description = "Image URL"
-    type = string
-}
-
-variable "desired_count" {
-    description = "How many instances of the service"
-    type = string
-}
