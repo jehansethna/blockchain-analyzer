@@ -37,7 +37,7 @@ def process_address(eth_address: str):
 
 
 def liveness():
-    pass
+    return True
 
 def readiness():
     pass
