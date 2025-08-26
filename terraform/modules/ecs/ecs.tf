@@ -74,10 +74,11 @@ resource "aws_ecs_task_definition" "web_task" {
         containerPort = 8080
         protocol      = "tcp"
       }]
-      environment =[
+      
+      secrets = [
         {
-            name  = "INFURA_API_KEY"
-            value = ""
+          name      = "INFURA_API_KEY"
+          valueFrom = data.aws_ssm_parameter.infura_api_key.arn
         }
       ]
       
@@ -91,6 +92,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
   security_group_ids = [aws_security_group.ecs_service.id]
+  private_dns_enabled = true
 }
 
 resource "aws_vpc_endpoint" "ecr_dkr" {
@@ -99,30 +101,42 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
   security_group_ids = [aws_security_group.ecs_service.id]
+  private_dns_enabled = true
 }
 
-# ECS Service
-resource "aws_ecs_service" "web_service" {
-  name            = "${var.name_prefix}-service"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.web_task.arn
-  launch_type     = "FARGATE"
-  desired_count   = var.desired_count
-
-  network_configuration {
-    subnets         = var.public_subnets
-    assign_public_ip = true
-    security_groups = [aws_security_group.ecs_service.id]
-  }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.web_tg.arn
-    container_name   = "web"         # ⬅️ must match container name in task
-    container_port   = 8080          # ⬅️ must match exposed container port
-  }
-
-  depends_on = [aws_lb_listener.http]
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnets
+  security_group_ids = [aws_security_group.ecs_service.id]
+  private_dns_enabled = true
 }
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnets
+  security_group_ids = [aws_security_group.ecs_service.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id            = var.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.private_subnets
+  security_group_ids = [aws_security_group.ecs_service.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "s3" {
+    vpc_id            = var.vpc_id
+    service_name      = "com.amazonaws.${var.aws_region}.s3"
+    vpc_endpoint_type = "Gateway"
+    route_table_ids   = [var.private_route_table]
+  }
 
 # Security Group for ECS Service
 resource "aws_security_group" "ecs_service" {
@@ -138,6 +152,13 @@ resource "aws_security_group" "ecs_service" {
     cidr_blocks      = ["0.0.0.0/0"] # You may restrict this
   }
 
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -148,6 +169,29 @@ resource "aws_security_group" "ecs_service" {
   tags = {
     Name = "${var.name_prefix}-ecs-sg"
   }
+}
+
+# ECS Service
+resource "aws_ecs_service" "web_service" {
+  name            = "${var.name_prefix}-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.web_task.arn
+  launch_type     = "FARGATE"
+  desired_count   = var.desired_count
+
+  network_configuration {
+    subnets         = var.private_subnets
+    assign_public_ip = false
+    security_groups = [aws_security_group.ecs_service.id]
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.web_tg.arn
+    container_name   = "web"         # ⬅️ must match container name in task
+    container_port   = 8080          # ⬅️ must match exposed container port
+  }
+
+  depends_on = [aws_lb_listener.http]
 }
 
 # Application Load Balancer (optional)

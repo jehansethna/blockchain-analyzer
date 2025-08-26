@@ -43,3 +43,8 @@ variable "aws_region" {
   type        = string
 }
 
+variable "private_route_table" {
+  description = "Private Route Table"
+  type        = string
+}
+
