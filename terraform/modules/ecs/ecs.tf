@@ -8,6 +8,12 @@ resource "aws_ecs_cluster" "main" {
   name = "${var.name_prefix}-ecs-cluster"
 }
 
+# Cloudwatch Group
+resource "aws_cloudwatch_log_group" "ecstasklogs" {
+  name              = "/ecs/blockchain-analyzer"
+  retention_in_days = 3
+}
+
 # IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution" {
   name = "${var.name_prefix}-ecs-task-execution-role"
@@ -81,6 +87,15 @@ resource "aws_ecs_task_definition" "web_task" {
           valueFrom = data.aws_ssm_parameter.infura_api_key.arn
         }
       ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group = aws_cloudwatch_log_group.ecstasklogs.name
+          awslogs-region = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
       
     }
   ])
