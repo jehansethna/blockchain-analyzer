@@ -1,4 +1,4 @@
-FROM 671415945235.dkr.ecr.us-east-1.amazonaws.com/python:3
+FROM python:3
 
 COPY requirements.txt /tmp
 
