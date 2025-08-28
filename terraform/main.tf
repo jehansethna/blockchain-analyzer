@@ -19,4 +19,6 @@ module "ecs" {
     private_subnets = module.networking.private_subnet_ids
     aws_region = var.aws_region
     private_route_table = module.networking.private_route_table
+    autoscaling_min_capacity = var.autoscaling_min_capacity
+    autoscaling_max_capacity = var.autoscaling_max_capacity
 }

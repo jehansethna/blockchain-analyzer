@@ -101,6 +101,7 @@ resource "aws_ecs_task_definition" "web_task" {
   ])
 }
 
+# Endpoints for Private Access
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id            = var.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
@@ -154,39 +155,6 @@ resource "aws_vpc_endpoint" "s3" {
   }
 
 # Security Group for ECS Service
-resource "aws_security_group" "load_balancer_sg" {
-  name        = "${var.name_prefix}-lb-sg"
-  description = "Allow inbound traffic"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description      = "HTTP from ALB"
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"] # You may restrict this
-  }
-
-  ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    cidr_blocks     = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.name_prefix}-load-balancer-sg"
-  }
-}
-
-# Security Group for ECS Service
 resource "aws_security_group" "ecs-service_sg" {
   name        = "${var.name_prefix}-ecs-sg"
   description = "Allow inbound traffic"
@@ -218,7 +186,7 @@ resource "aws_ecs_service" "web_service" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.web_task.arn
   launch_type     = "FARGATE"
-  desired_count   = var.desired_count
+  #desired_count   = var.desired_count
 
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent = 200
@@ -238,9 +206,7 @@ resource "aws_ecs_service" "web_service" {
   depends_on = [aws_lb_listener.http]
 }
 
-
-
-# Application Load Balancer (optional)
+# Application Load Balancer
 resource "aws_lb" "web_alb" {
   name               = "${var.name_prefix}-alb"
   internal           = false
@@ -278,5 +244,65 @@ resource "aws_lb_listener" "http" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.web_tg.arn
+  }
+}
+
+# Security Group for LoadBalancer
+resource "aws_security_group" "load_balancer_sg" {
+  name        = "${var.name_prefix}-lb-sg"
+  description = "Allow inbound traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description      = "HTTP from ALB"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"] # You may restrict this
+  }
+
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.name_prefix}-load-balancer-sg"
+  }
+}
+
+# Autoscaling
+resource "aws_appautoscaling_target" "ecs_target" {
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.web_service.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = var.autoscaling_min_capacity
+  max_capacity       = var.autoscaling_max_capacity
+}
+
+resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
+  name               = "${var.name_prefix}-cpu-scaling-policy"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+
+    target_value       = 50.0   # Target CPU utilization in %
+    scale_in_cooldown  = 60     # seconds
+    scale_out_cooldown = 60     # seconds
   }
 }

@@ -48,3 +48,13 @@ variable "private_route_table" {
   type        = string
 }
 
+variable "autoscaling_min_capacity" {
+    description = "Minimum number of tasks required"
+    type = number
+}
+
+variable "autoscaling_max_capacity" {
+    description = "Maximum number of tasks required"
+    type = number
+}
+
