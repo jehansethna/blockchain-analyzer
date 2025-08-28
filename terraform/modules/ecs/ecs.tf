@@ -106,7 +106,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
-  security_group_ids = [aws_security_group.ecs_service.id]
+  security_group_ids = [aws_security_group.load_balancer_sg.id]
   private_dns_enabled = true
 }
 
@@ -115,7 +115,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
-  security_group_ids = [aws_security_group.ecs_service.id]
+  security_group_ids = [aws_security_group.load_balancer_sg.id]
   private_dns_enabled = true
 }
 
@@ -124,7 +124,7 @@ resource "aws_vpc_endpoint" "ssm" {
   service_name      = "com.amazonaws.${var.aws_region}.ssm"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
-  security_group_ids = [aws_security_group.ecs_service.id]
+  security_group_ids = [aws_security_group.load_balancer_sg.id]
   private_dns_enabled = true
 }
 
@@ -133,7 +133,7 @@ resource "aws_vpc_endpoint" "ssmmessages" {
   service_name      = "com.amazonaws.${var.aws_region}.ssmmessages"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
-  security_group_ids = [aws_security_group.ecs_service.id]
+  security_group_ids = [aws_security_group.load_balancer_sg.id]
   private_dns_enabled = true
 }
 
@@ -142,7 +142,7 @@ resource "aws_vpc_endpoint" "ec2messages" {
   service_name      = "com.amazonaws.${var.aws_region}.ec2messages"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.private_subnets
-  security_group_ids = [aws_security_group.ecs_service.id]
+  security_group_ids = [aws_security_group.load_balancer_sg.id]
   private_dns_enabled = true
 }
 
@@ -154,15 +154,15 @@ resource "aws_vpc_endpoint" "s3" {
   }
 
 # Security Group for ECS Service
-resource "aws_security_group" "ecs_service" {
-  name        = "${var.name_prefix}-ecs-sg"
-  description = "Allow inbound traffic from ALB"
+resource "aws_security_group" "load_balancer_sg" {
+  name        = "${var.name_prefix}-lb-sg"
+  description = "Allow inbound traffic"
   vpc_id      = var.vpc_id
 
   ingress {
     description      = "HTTP from ALB"
     from_port        = 80
-    to_port          = 8080
+    to_port          = 80
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"] # You may restrict this
   }
@@ -172,6 +172,32 @@ resource "aws_security_group" "ecs_service" {
     to_port         = 443
     protocol        = "tcp"
     cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.name_prefix}-load-balancer-sg"
+  }
+}
+
+# Security Group for ECS Service
+resource "aws_security_group" "ecs-service_sg" {
+  name        = "${var.name_prefix}-ecs-sg"
+  description = "Allow inbound traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description      = "HTTP from ALB"
+    from_port        = 8080
+    to_port          = 8080
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.load_balancer_sg.id]
   }
 
   egress {
@@ -197,7 +223,7 @@ resource "aws_ecs_service" "web_service" {
   network_configuration {
     subnets         = var.private_subnets
     assign_public_ip = false
-    security_groups = [aws_security_group.ecs_service.id]
+    security_groups = [aws_security_group.ecs-service_sg.id]
   }
 
   load_balancer {
@@ -209,13 +235,15 @@ resource "aws_ecs_service" "web_service" {
   depends_on = [aws_lb_listener.http]
 }
 
+
+
 # Application Load Balancer (optional)
 resource "aws_lb" "web_alb" {
   name               = "${var.name_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
   subnets            = var.public_subnets
-  security_groups    = [aws_security_group.ecs_service.id]
+  security_groups    = [aws_security_group.load_balancer_sg.id]
 
   tags = {
     Name = "${var.name_prefix}-alb"
