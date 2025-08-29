@@ -21,4 +21,5 @@ module "ecs" {
     private_route_table = module.networking.private_route_table
     autoscaling_min_capacity = var.autoscaling_min_capacity
     autoscaling_max_capacity = var.autoscaling_max_capacity
+    alert_email = var.alert_email
 }

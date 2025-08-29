@@ -58,3 +58,8 @@ variable "autoscaling_max_capacity" {
     description = "Maximum number of tasks required"
     type = number
 }
+
+variable "alert_email" {
+    description = "Email to Send Alerts"
+    type = string
+}

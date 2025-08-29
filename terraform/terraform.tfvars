@@ -10,3 +10,4 @@ container_image = "671415945235.dkr.ecr.us-east-1.amazonaws.com/blockchain-analy
 desired_count = "1"
 autoscaling_min_capacity = 1
 autoscaling_max_capacity = 5
+alert_email = "jehans7@gmail.com"
