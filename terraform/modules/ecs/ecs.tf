@@ -381,3 +381,23 @@ resource "aws_cloudwatch_metric_alarm" "ecs_running_tasks_low" {
     ServiceName = aws_ecs_service.web_service.name
   }
 }
+
+# ALB 5XX Errors
+resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
+  alarm_name          = "ALB-5XX-Errors-Alarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = 300 # 5 minutes
+  statistic           = "Sum"
+  threshold           = 5   # Customize this threshold as needed
+  alarm_description   = "Alarm when the ALB target returns 5XX errors"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    LoadBalancer = aws_lb.web_alb.arn  # Replace with your actual ALB ARN suffix
+  }
+
+  alarm_actions = [aws_sns_topic.ecs_alerts.arn]
+}
