@@ -8,5 +8,5 @@ task_cpu = "1024"
 task_memory = "2048"
 container_image = "671415945235.dkr.ecr.us-east-1.amazonaws.com/blockchain-analyzer:v0.15.0"
 desired_count = "1"
-autoscaling_min_capacity = 2
+autoscaling_min_capacity = 1
 autoscaling_max_capacity = 5

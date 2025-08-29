@@ -186,7 +186,11 @@ resource "aws_ecs_service" "web_service" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.web_task.arn
   launch_type     = "FARGATE"
-  #desired_count   = var.desired_count
+  desired_count   = var.desired_count
+
+  lifecycle {
+    ignore_changes = [ desired_count ]
+  }
 
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent = 200
@@ -301,7 +305,7 @@ resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
 
-    target_value       = 50.0   # Target CPU utilization in %
+    target_value       = 10.0   # Target CPU utilization in %
     scale_in_cooldown  = 60     # seconds
     scale_out_cooldown = 60     # seconds
   }
