@@ -23,3 +23,13 @@ module "ecs" {
     autoscaling_max_capacity = var.autoscaling_max_capacity
     alert_email = var.alert_email
 }
+
+module "alarms" {
+  source = "./modules/alarms"
+  alert_email = var.alert_email
+  name_prefix = var.name_prefix
+  desired_count = var.desired_count
+  cluster_name = module.ecs.cluster_name
+  cluster_service_name =  module.ecs.cluster_service_name
+  alb_arn = module.ecs.alb_arn
+}
