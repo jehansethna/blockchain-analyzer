@@ -1,4 +1,4 @@
-# Alerting
+# Alerting with SNS
 resource "aws_sns_topic" "ecs_alerts" {
   name = "${var.name_prefix}-alerts"
 }
@@ -45,7 +45,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
   }
 }
 
-# Task Count
+# Task Count Alarm
 resource "aws_cloudwatch_metric_alarm" "ecs_running_tasks_low" {
   alarm_name          = "${var.name_prefix}-ci-running-tasks-low"
   comparison_operator = "LessThanThreshold"

@@ -1,17 +1,16 @@
-name: Build and Push Docker Images to AWS ECR.
+name: blockchain-analyzer Build and Deploy manifest.
 
-on:
+on: # Trigger the workflow on push to the main branch when changes to the src, .github folders and Dockerfile. 
   push:
     paths:
       - src/**
       - .github/**
       - Dockerfile
     branches:
-      - main # Trigger the workflow on push to the main branch
-
+      - main 
 
 jobs:
-  get_version:
+  get_version:  # Stage 1 - Gets the version of the latest Git repo tag and updates with new version. 
     runs-on: 
       - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
     
@@ -27,11 +26,11 @@ jobs:
         run: |
           bash ./build/version_update.sh -v minor
 
-  build_and_push:
+  build_and_push:  # Stage 2 - Builds the Image using the Dockerfile and pushes to ECR.
     runs-on: 
       - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
 
-    needs: get_version
+    needs: get_version # Depends on Stage 1 for the tag to be used for the image. 
 
     steps:
       - name: Checkout Code
@@ -47,6 +46,7 @@ jobs:
         with:
           region: ${{ secrets.AWS_REGION }}
       
+      # Build and push the Image
       - name: Build and push Docker image to ECR
         env:
           IMAGE_TAG: ${{ needs.get_version.outputs.image_tag }}
@@ -54,11 +54,11 @@ jobs:
           docker build -t ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG .
           docker push ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG
 
-  update_version:
+  update_version: # Stage 3 - Updates the Version in the default variables file and pushes a commit to GIT. 
     runs-on: 
       - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
     
-    needs: ["get_version", "build_and_push"]
+    needs: ["get_version", "build_and_push"] # Depends on Stage 1, 2 for the default variables file. 
 
     steps:
       - name: Checkout Code
@@ -76,7 +76,7 @@ jobs:
           git commit -m "Update image to $IMAGE_TAG"
           git push
 
-  terraform:
+  terraform:  # Stage 4 - Runs the terraform to deploy the application in AWS Account. 
     runs-on: 
       - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
 
@@ -84,7 +84,7 @@ jobs:
       run:
         working-directory: terraform
 
-    needs: ["update_version"]
+    needs: ["update_version"] # Depends on Stage 3 to run the terraform with latest image tag. 
 
     steps:
       - name: Checkout Code

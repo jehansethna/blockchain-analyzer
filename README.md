@@ -21,6 +21,7 @@ Repository contains the Application for fetching the balance of an Ethereum Addr
 3. Review the default input variables present in the file ```terraform/terraform.tfvars```
 4. Create a S3 bucket in AWS Account and update the value in the file ```terraform/backend.tf```
 5. Ensure you have configured access to your AWS account using the ```aws configure``` command. 
+6. Create a SSM parameter for storing the API_KEY. The name of the parameter will be ```infura_api_key```.
 6. Run the Terraform using the following commands
     - ```cd terraform```
     - ```terraform init```

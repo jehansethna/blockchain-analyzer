@@ -1,4 +1,4 @@
-# Getting API Key
+# Getting API Key from Parameter Store
 data "aws_ssm_parameter" "infura_api_key" {
   name = "infura_api_key"
 }
@@ -13,7 +13,7 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
-# Cloudwatch Group
+# Cloudwatch Group for Accessing Logs
 resource "aws_cloudwatch_log_group" "ecstasklogs" {
   name              = "/ecs/blockchain-analyzer"
   retention_in_days = 3
@@ -42,6 +42,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_exec_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# SSM & ECR Access Policy
 resource "aws_iam_policy" "ecs_ssm_access" {
   name = "${var.name_prefix}-ecs-ssm-access"
 
@@ -62,6 +63,7 @@ resource "aws_iam_policy" "ecs_ssm_access" {
   })
 }
 
+# SSM & ECR Access Policy Attachment
 resource "aws_iam_role_policy_attachment" "ecs_exec_ssm_attach" {
   role       = aws_iam_role.ecs_task_execution.name
   policy_arn = aws_iam_policy.ecs_ssm_access.arn
@@ -228,6 +230,7 @@ resource "aws_lb" "web_alb" {
   }
 }
 
+# ALB Target Group 
 resource "aws_lb_target_group" "web_tg" {
   name     = "${var.name_prefix}-tg"
   port     = 8080
@@ -245,6 +248,7 @@ resource "aws_lb_target_group" "web_tg" {
   }
 }
 
+# ALB Listener
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.web_alb.arn
   port              = 80

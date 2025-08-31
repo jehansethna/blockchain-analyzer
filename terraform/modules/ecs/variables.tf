@@ -1,65 +1,65 @@
 variable "name_prefix" {
-    description = "Project Name"
+    description = "The Project Name to be used for the application."
     type        = string
 }
 
 variable "task_cpu" {
-    description = "CPU for the task"
+    description = "The CPU required for the ECS task."
     type = string 
 }
 
 variable "task_memory" {
-    description = "Memory for the task"
+    description = "The Memory required for the ECS task."
     type = string 
 }
 
 variable "container_image" {
-    description = "Image URL"
+    description = "The Image URL required for the ECS task."
     type = string
 }
 
 variable "desired_count" {
-    description = "How many instances of the service"
+    description = "How many instances of the ECS Service."
     type = string
 }
 
 variable "vpc_id" {
-    description = "VPC Id"
+    description = "VPC Id to be used for the deployment."
     type = string
 }
 
 variable "public_subnets" {
-    description = "List of public subnet CIDRs"
+    description = "List of public subnet CIDRs."
     type        = list(string)
 }
 
 variable "private_subnets" {
-    description = "List of private subnet CIDRs"
+    description = "List of private subnet CIDRs."
     type        = list(string)
 }
 
 variable "aws_region" {
-  description = "AWS region"
+  description = "The AWS region for the Application Deployment."
   type        = string
 }
 
 variable "private_route_table" {
-  description = "Private Route Table"
+  description = "Private Route Table."
   type        = string
 }
 
 variable "autoscaling_min_capacity" {
-    description = "Minimum number of tasks required"
+    description = "Minimum number of tasks required for the ECS Service."
     type = number
 }
 
 variable "autoscaling_max_capacity" {
-    description = "Maximum number of tasks required"
+    description = "Maximum number of tasks required for the ECS Service."
     type = number
 }
 
 variable "alert_email" {
-    description = "Email to Send Alerts"
+    description = "Email to Send Alerts."
     type = string
 }
 
