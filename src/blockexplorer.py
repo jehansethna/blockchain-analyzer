@@ -1,5 +1,5 @@
 """
-The main module, starts up the flask server
+The main module, starts up the flask server.
 """
 
 from lib import utils
