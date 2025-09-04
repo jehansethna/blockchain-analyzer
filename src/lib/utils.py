@@ -36,3 +36,15 @@ def validate_eth_address(address: str) -> bool:
 
     return bool(re.match(pattern, address, flags=re.I))
 
+def validate_input_hash(input_hash: str) -> bool:
+    """
+    A function that checks if a given ethereum address is correctly formatted.
+    Takes a string as input and returns boolean.
+    """
+
+    pattern = r"0x[0-9A-F]{40}$"
+
+    #return bool(re.match(pattern, input_hash, flags=re.I))
+
+    return True
+

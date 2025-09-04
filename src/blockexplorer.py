@@ -5,7 +5,7 @@ The main module, starts up the flask server to run API.
 from lib import utils
 
 from lib.constants import HEALTHZ
-from lib.infura import get_balance
+from lib.infura import get_balance, get_transaction
 
 from flask import Flask, jsonify
 from flask_healthz import healthz, HealthError
@@ -35,6 +35,20 @@ def process_address(eth_address: str):
     log.debug("returning value for address %s", eth_address)
     return jsonify({"balance": balance})
 
+
+@app.route("/transaction/<input_hash>", methods=["GET"])
+def process_transaction(input_hash: str):
+    """
+    Checks for the balance of a given eth address
+    """
+    if not utils.validate_input_hash(input_hash):
+        log.info("input_hash has invalid syntax, input_hash: %s submitted", input_hash)
+        return jsonify({"error": "invalid input_hash syntax"})
+
+    transaction = get_transaction(input_hash)
+
+    log.debug("returning transaction for input_hash %s", input_hash)
+    return jsonify({"transaction": transaction})
 
 def liveness():
     pass
