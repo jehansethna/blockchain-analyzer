@@ -10,8 +10,8 @@ availability_zones   = ["us-east-1a", "us-east-1b", "us-east-1c"]
 task_cpu = "1024"
 task_memory = "2048"
 container_image = "671415945235.dkr.ecr.us-east-1.amazonaws.com/blockchain-analyzer:v0.23.0"
-desired_count = "1"
-autoscaling_min_capacity = 1
+desired_count = "2"
+autoscaling_min_capacity = 2
 autoscaling_max_capacity = 5
 
 # Notification Requirements
