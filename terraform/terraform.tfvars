@@ -9,7 +9,7 @@ availability_zones   = ["us-east-1a", "us-east-1b", "us-east-1c"]
 # ECS Requirements
 task_cpu = "1024"
 task_memory = "2048"
-container_image = "671415945235.dkr.ecr.us-east-1.amazonaws.com/blockchain-analyzer:v0.21.0"
+container_image = "671415945235.dkr.ecr.us-east-1.amazonaws.com/blockchain-analyzer:v0.22.0"
 desired_count = "1"
 autoscaling_min_capacity = 1
 autoscaling_max_capacity = 5
