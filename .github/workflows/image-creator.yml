@@ -12,7 +12,7 @@ on: # Trigger the workflow on push to the main branch when changes to the src, .
 jobs:
   get_version:  # Stage 1 - Gets the version of the latest Git repo tag and updates with new version. 
     runs-on: 
-      - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
+      - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
     
     outputs:
       image_tag: ${{ steps.increment-git-tag.outputs.git-tag }}
@@ -28,7 +28,7 @@ jobs:
 
   build_and_push:  # Stage 2 - Builds the Image using the Dockerfile and pushes to ECR.
     runs-on: 
-      - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
+      - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
 
     needs: get_version # Depends on Stage 1 for the tag to be used for the image. 
 
