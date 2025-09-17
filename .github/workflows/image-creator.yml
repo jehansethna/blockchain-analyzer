@@ -10,47 +10,73 @@ on: # Trigger the workflow on push to the main branch when changes to the src, .
       - main 
 
 jobs:
-  get_version:  # Stage 1 - Gets the version of the latest Git repo tag and updates with new version. 
-    runs-on: 
-      - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
+  # get_version:  # Stage 1 - Gets the version of the latest Git repo tag and updates with new version. 
+  #   runs-on: 
+  #     - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
     
-    outputs:
-      image_tag: ${{ steps.increment-git-tag.outputs.git-tag }}
+  #   outputs:
+  #     image_tag: ${{ steps.increment-git-tag.outputs.git-tag }}
     
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
       
-      - name: Automatic Tagging of Releases
-        id: increment-git-tag
-        run: |
-          bash ./build/version_update.sh -v minor
+  #     - name: Automatic Tagging of Releases
+  #       id: increment-git-tag
+  #       run: |
+  #         bash ./build/version_update.sh -v minor
 
-  build_and_push:  # Stage 2 - Builds the Image using the Dockerfile and pushes to ECR.
-    runs-on: 
+
+  safety:
+    runs-on:
       - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
 
-    needs: get_version # Depends on Stage 1 for the tag to be used for the image. 
-
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Docker
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'  # Adjust to your needs
 
-      # Log in to AWS ECR
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
-      
-      # Build and push the Image
-      - name: Build and push Docker image to ECR
-        env:
-          IMAGE_TAG: ${{ needs.get_version.outputs.image_tag }}
+      - name: Install dependencies
         run: |
-          docker build -t ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG .
-          docker push ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Safety
+        run: pip install safety
+
+      - name: Run Safety check
+        run: |
+          safety check --full-report --continue-on-error
+
+  # build_and_push:  # Stage 2 - Builds the Image using the Dockerfile and pushes to ECR.
+  #   runs-on: 
+  #     - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
+
+  #   needs: get_version # Depends on Stage 1 for the tag to be used for the image. 
+
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+
+  #     # Set up Docker
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
+
+  #     # Log in to AWS ECR
+  #     - name: Log in to Amazon ECR
+  #       uses: aws-actions/amazon-ecr-login@v1
+      
+  #     # Build and push the Image
+  #     - name: Build and push Docker image to ECR
+  #       env:
+  #         IMAGE_TAG: ${{ needs.get_version.outputs.image_tag }}
+  #       run: |
+  #         docker build -t ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG .
+  #         docker push ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG
 
   
   # update_version: # Stage 3 - Updates the Version in the default variables file and pushes a commit to GIT. 
