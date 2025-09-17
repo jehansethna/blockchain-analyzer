@@ -54,64 +54,65 @@ jobs:
           docker build -t ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG .
           docker push ${{ secrets.AWS_ECR_REPOSITORY }}:$IMAGE_TAG
 
-  update_version: # Stage 3 - Updates the Version in the default variables file and pushes a commit to GIT. 
-    runs-on: 
-      - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
+  
+  # update_version: # Stage 3 - Updates the Version in the default variables file and pushes a commit to GIT. 
+  #   runs-on: 
+  #     - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
     
-    needs: ["get_version", "build_and_push"] # Depends on Stage 1, 2 for the default variables file. 
+  #   needs: ["get_version", "build_and_push"] # Depends on Stage 1, 2 for the default variables file. 
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
 
-      - name: Update image version in k8s manifests
-        id: bump-version
-        env:
-          IMAGE_TAG: ${{ needs.get_version.outputs.image_tag }}
-        run: |
-          sed -i "s/\(container_image = \"671415945235.dkr.ecr.us-east-1.amazonaws.com\/blockchain-analyzer:\)[^\"]*/\1$IMAGE_TAG/" terraform/terraform.tfvars
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Update image to $IMAGE_TAG"
-          git push
+  #     - name: Update image version in k8s manifests
+  #       id: bump-version
+  #       env:
+  #         IMAGE_TAG: ${{ needs.get_version.outputs.image_tag }}
+  #       run: |
+  #         sed -i "s/\(container_image = \"671415945235.dkr.ecr.us-east-1.amazonaws.com\/blockchain-analyzer:\)[^\"]*/\1$IMAGE_TAG/" terraform/terraform.tfvars
+  #         git config user.name "github-actions[bot]"
+  #         git config user.email "github-actions[bot]@users.noreply.github.com"
+  #         git add .
+  #         git commit -m "Update image to $IMAGE_TAG"
+  #         git push
 
-  terraform:  # Stage 4 - Runs the terraform to deploy the application in AWS Account. 
-    runs-on: 
-      - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
+  # terraform:  # Stage 4 - Runs the terraform to deploy the application in AWS Account. 
+  #   runs-on: 
+  #     - codebuild-image-builder-${{ github.run_id }}-${{ github.run_attempt }}
 
-    defaults:
-      run:
-        working-directory: terraform
+  #   defaults:
+  #     run:
+  #       working-directory: terraform
 
-    needs: ["update_version"] # Depends on Stage 3 to run the terraform with latest image tag. 
+  #   needs: ["update_version"] # Depends on Stage 3 to run the terraform with latest image tag. 
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: main
+  #         fetch-depth: 0
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.8.0
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #       with:
+  #         terraform_version: 1.8.0
 
-      - name: Terraform Init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform init
+  #     - name: Terraform Init
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       run: terraform init
 
-      - name: Terraform Plan
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform plan
+  #     - name: Terraform Plan
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       run: terraform plan
       
-      - name: Terraform Apply
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: terraform apply --auto-approve
+  #     - name: Terraform Apply
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       run: terraform apply --auto-approve
