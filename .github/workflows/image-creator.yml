@@ -43,8 +43,6 @@ jobs:
       # Log in to AWS ECR
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
-        with:
-          region: ${{ secrets.AWS_REGION }}
       
       # Build and push the Image
       - name: Build and push Docker image to ECR
