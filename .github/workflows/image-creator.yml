@@ -101,6 +101,20 @@ jobs:
   terraform:  # Stage 4 - Runs the terraform to deploy the application in AWS Account. 
     runs-on: 
       - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
+    env:
+      TF_VAR_alert_email: "jehans7@gmail.com"
+      TF_VAR_task_cpu: "1024"
+      TF_VAR_task_memory: "2048"
+      TF_VAR_container_image: "251342504067.dkr.ecr.us-east-1.amazonaws.com/blockchain-analyzer:v0.28.0"
+      TF_VAR_desired_count: "2"
+      TF_VAR_autoscaling_min_capacity: 2
+      TF_VAR_autoscaling_max_capacity: 5
+      TF_VAR_aws_region: "us-east-1"
+      TF_VAR_name_prefix: "blockchain-analyzer"
+      TF_VAR_vpc_cidr: "10.0.0.0/16"
+      TF_VAR_public_subnet_cidrs: "[\"10.0.1.0/24\", \"10.0.2.0/24\", \"10.0.3.0/24\"]"
+      TF_VAR_private_subnet_cidrs: "[\"10.0.101.0/24\", \"10.0.102.0/24\", \"10.0.103.0/24\"]"
+      TF_VAR_availability_zones: "[\"us-east-1a\", \"us-east-1b\", \"us-east-1c\"]"
 
     defaults:
       run:
