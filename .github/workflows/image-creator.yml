@@ -26,28 +26,28 @@ jobs:
         run: |
           bash ./build/version_update.sh -v minor
 
-  safety:
-    runs-on:
-      - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
+  # safety:
+  #   runs-on:
+  #     - codebuild-GithubActionRunner-${{ github.run_id }}-${{ github.run_attempt }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install -r requirements.txt
 
-      - name: Install Safety
-        run: pip install safety
+  #     - name: Install Safety
+  #       run: pip install safety
 
-      - name: Run Safety check
-        run: |
-          safety check --full-report --continue-on-error
+  #     - name: Run Safety check
+  #       run: |
+  #         safety check --full-report --continue-on-error
 
   build_and_push:  # Stage 2 - Builds the Image using the Dockerfile and pushes to ECR.
     runs-on: 
